@@ -1,0 +1,118 @@
+//-
+	Index.pug
+
+	This is the home page for this project. It is configured to auto-connect
+	to the server's websocket and handle any events fired from the server end.
+//-
+
+extends base
+
+//- The visual portion of the page
+block content
+	div(class='panel panel-default')
+		div.panel-body
+			h1 MQTT Tracker
+			p Simple Website for tracking population 'heat maps' using MQTT
+
+			// Implement the graphics portion in the canvas supplied below
+			div.well
+				canvas(id='grid')
+	
+	div(class='panel')
+		div.panel-body
+			button(class='btn btn-primary', type='button', data-toggle='collapse', data-target='#debugLog', aria-expanded='false', aria-controls='debugLog') Show Debug Log
+			div(id='debugLog', class='collapse')
+				div(id='debugLogList', class='well')
+
+//- The scripts needed by this page
+block scripts
+	script(type='text/javascript').
+		$(() => {
+			$('#debugLogList').text('start');
+			var socket = io();
+
+			// Handle socket events here
+			//--------------------------
+			// Adds to the debug list
+			socket.on('debug', data => {
+				var time = new Date();
+
+				$('#debugLogList').append('<div>' + time + ': ' + data.type + ' | ' + data.msg + '</div>');
+			});
+			//--------------------------
+		});
+	
+	script(type='text/javascript').
+		$(() => {
+			// Handle any canvas code here
+			//----------------------------
+			
+			var c = $('#grid')[0];
+			var ctx=c.getContext('2d');
+			ctx.font='20px Arial';
+			//ctx.fillText('Hello World',10,10);
+			//----------------------------
+				var socket = io();
+				
+
+			socket.on('area1', data => {
+				ctx.fillStyle = '#000000';
+				ctx.fillRect(0,0,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area1: "+data.msg,10,20);
+			});
+			socket.on('area2', data => {
+				ctx.fillStyle = '#000000';
+				ctx.fillRect(0,30,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area2: "+data.msg,10,50);
+			});
+			socket.on('area3', data => {
+				console.log('fedn' + data.msg);
+				ctx.fillStyle = '#000000';
+				ctx.fillRect(0,60,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area3: "+data.msg,10,80);
+			});
+			socket.on('area4', data => {
+				ctx.fillStyle = '#000000';
+				ctx.fillRect(0,90,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area4: "+data.msg,10,110);
+			});
+			
+			var SERVER = '192.168.0.8';
+			var PORT = '8080';
+			
+			$.get('http://'+SERVER+':'+PORT+'/area1', function(data){
+				console.log('count 1 :', data.count);
+				ctx.fillStyle = '#000000';
+				ctx.fillRect(0,0,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area1: "+data.count,10,20);
+			});
+			
+			$.get('http://'+SERVER+':'+PORT+'/area2', function(data){
+				console.log('count 2 :', data.count);
+				
+				ctx.fillStyle = '#000000';
+				ctx.fillRect(0,30,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area2: "+data.count,10,50);
+			});
+
+			$.get('http://'+SERVER+':'+PORT+'/area3', function(data){
+			  	ctx.fillStyle = '#000000';
+				ctx.fillRect(0,60,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area3: "+data.count,10,80);
+			});
+
+			$.get('http://'+SERVER+':'+PORT+'/area4', function(data){
+				ctx.fillStyle = '#000000';
+				ctx.fillRect(0,90,c.width,30);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText("Capacity in Area4: "+data.count,10,110);
+			});
+			
+		});
