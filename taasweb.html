@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>TaaS</title>
+	</head>
+	<body>
+		<div id = "prescriptionForm">
+			<form id = "treatmentForm" onsubmit = "">
+				<h1>Treatment as a Service</h1>
+				<div id = "durInput">
+					Duration (Days):<br>
+					<input type = "number" id = "duration" min = "0">
+				</div>
+				<div id = "medInput">
+					Medication:<br>
+					<input type = "text" id = "medication">
+				</div>
+				<div id = "foodInput">
+					Restricted Food:<br>
+					<input type = "text" id = "food"> &emsp;
+					<input type = "button" id = "addFood" value = "Add Food"><br>
+				</div>
+				<div id = "sympInput">
+					Possible Side Effects:<br>
+					<input type = "text" name = "symptom"> &emsp;
+					<input type = "button" id = "addSymp" value = "Add Side Effect"><br>
+				</div>
+				<div id = "sleepInput"  style = "padding-bottom: 10px">
+					Recommended Sleep (Hours):<br>
+					&ensp;Min:<br>&ensp;
+					<input type = "number" name = "minSleep" min = "0">
+					<br>
+					&ensp;Max:<br>&ensp;
+					<input type = "number" name = "maxSleep" min = "0">
+				</div>
+				<button type = "submit">Submit</button>
+			</form>
+		</div>
+		<script type = "text/javascript">
+			document.getElementById("addFood").onclick = function(){
+				var form = document.getElementById("foodInput");
+				var input = document.createElement("input");
+				input.type = "text";
+				var br = document.createElement("br");
+				form.appendChild(input);
+				form.appendChild(br);
+			}
+			
+			document.getElementById("addSymp").onclick = function(){
+				var form = document.getElementById("sympInput");
+				var input = document.createElement("input");
+				input.type = "text";
+				var br = document.createElement("br");
+				form.appendChild(input);
+				form.appendChild(br);
+			}
+		</script>
+	</body>
+</html>
