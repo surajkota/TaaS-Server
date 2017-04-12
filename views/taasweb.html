@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
+
+    <title>TaaS</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/taasweb.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="js/ie-emulation-modes-warning.js"></script>
+    <script type="text/javascript" src="js/socket.io.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script type="text/javascript">
+        function toggle_visibility(id) {
+			var e = document.getElementById(id);
+			if(e.style.display == 'block')
+              e.style.display = 'none';
+           else
+              e.style.display = 'block';
+        }
+	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+	<script>
+	var idMedOffset = 0;
+	var idFoodOffset = 0;
+	var idSympOffset = 0;
+	var subcriptionid = 1000;
+		$(document).ready(function(){
+			$("#addMed").click(function(){
+				idMedOffset++;
+				$("#medForm").append($("#medforDupe0").clone(true).prop({id: "medDupe"+ idMedOffset}));
+			});
+			$("#addFood").click(function(){
+				idFoodOffset++;
+				$("#foodForm").append($("#foodforDupe0").clone(true).prop({id: "foodDupe"+ idFoodOffset}));
+				
+			});
+			$("#addSymp").click(function(){
+				idSympOffset++;
+				$("#sympForm").append($("#sympforDupe0").clone(true).prop({id: "sympDupe"+ idSympOffset}));
+				
+			});
+
+			$("#submitButton").click(function() {
+				var json = {};
+				json.duration = $("#inputDuration").val() ? $("#inputDuration").val() : "10";
+
+				if($("#medicationCheckBox").is(":checked")) {
+					var medArr = [];
+					for(var i=0; i<idFoodOffset; i++) {
+						var med = {};
+						med.medicineName = $("#medDupe"+i).find("#inputMedication").val()? $("#medDupe"+i).find("#inputMedication").val() : "Crocin";
+						// var timeArr = [];
+						// timeArr.push($("#medDupe"+i).find("#inputMedStart").val());
+						// timeArr.push($("#medDupe"+i).find("#inputMedEnd").val());
+						// med.timeThreshold = timeArr;
+						med.quantity = $("#medDupe"+i).find("#inputMedQuantity").val() ? $("#medDupe"+i).find("#inputMedQuantity").val() : "1";
+						med.procedure = $("#medDupe"+i).find("#inputMedProcedure").val() ? $("#medDupe"+i).find("#inputMedProcedure").val() : "Swallow capsule without biting.";
+						med.frequency = $("#medDupe"+i).find("#inputMedFreq").val() ? $("#medDupe"+i).find("#inputMedFreq").val() : "2";						
+						med.startDay = $("#medDupe"+i).find("#inputMedStart").val() ? $("#medDupe"+i).find("#inputMedStart").val() : "1";						
+						med.endDay = $("#medDupe"+i).find("#inputMedEnd").val() ? $("#medDupe"+i).find("#inputMedEnd").val() : "10";						
+						medArr.push(med);
+					}
+					json.medication = medArr;
+				}
+
+				if($("#sideEffectsCheckBox").is(":checked")) {
+					var sideArr = [];
+					for(var i=0; i<idSympOffset; i++) {
+						var side = {};
+						side.symptom = $("#sympDupe"+i).find("#inputSideEffect").val() ? $("#sympDupe"+i).find("#inputSideEffect").val() : "Breathlessness";
+						var alertArr = [];
+						alertArr.push($("#sympDupe"+i).find("#inputAlertStart").val() ? $("#sympDupe"+i).find("#inputAlertStart").val() : "1");
+						alertArr.push($("#sympDupe"+i).find("#inputAlertEnd").val() ? $("#sympDupe"+i).find("#inputAlertEnd").val() : "10");
+						side.whenToAlert = alertArr;
+						sideArr.push(side);
+					}
+					json.dangerSigns = sideArr;
+				}
+
+				if($("#restrictedFoodCheckBox").is(":checked")) {
+					var foodArr = [];
+					for(var i=0; i<idFoodOffset; i++) {
+						var food = {};
+						food.foodId = $("#foodDupe"+i).find("#inputFood").val() ? $("#foodDupe"+i).find("#inputFood").val() : "Soda";
+						food.startDay = $("#foodDupe"+i).find("#inputFoodStart").val() ? $("#foodDupe"+i).find("#inputFoodStart").val() : "1";
+						food.endDay = $("#foodDupe"+i).find("#inputFoodEnd").val() ? $("#foodDupe"+i).find("#inputFoodEnd").val() : "10";
+						foodArr.push(food);
+					}
+					json.restrictedFood = foodArr;
+				}
+
+				if($("#sleepCheckBox").is(":checked")) {
+					var sleep = {};
+					sleep.minThreshold = $("#inputMinSleep").val();
+					sleep.maxThreshold = $("#inputMaxSleep").val();
+					json.sleep = sleep;
+				}
+				json.treatmentId = subcriptionid.toString();
+				alert(subcriptionid);
+				console.log(json);
+				$("#jsonfield").val(json);
+			});
+
+		});
+
+		function openpanel(){
+			$("#debugLog").css("display","block");
+		}
+		$(() => {
+			$('#debugLogList').text('start');
+			var socket = io();
+
+			// Handle socket events here
+			//--------------------------
+			// Adds to the debug list
+			socket.on('debug', data => {
+				var time = new Date();
+				console.log(data);
+				$('#debugLogList').append('<div>' + time + ': ' + data.type + ' | ' + data.msg + '</div>');
+			});
+	
+			socket.on('duration', data => {
+				console.log(data);
+				$("#inputDuration").val(data);
+			});
+			socket.on('medicineName', data => {
+				console.log(data);
+				$("#medDupe"+idMedOffset).find("#inputMedication").val(data);
+			});
+			socket.on('timesaday', data => {
+				console.log(data);
+				$("#medDupe"+idMedOffset).find("#inputMedFreq").val(data);
+			});
+			socket.on('aspect', data => {
+				console.log(data);
+				if(data == 'medication'){
+					if($("#medicationCheckBox").is(":checked")) {
+						idMedOffset++;
+						$("#medForm").append($("#medDupe0").clone(true).prop({id: "medDupe"+ idMedOffset}));
+						
+					}else{
+						$("#medicationCheckBox").prop('checked', true);
+						$("#medForm").css("display","block");
+					}
+				}	
+			});
+			socket.on('startDay', data => {
+				console.log(data);
+				$("#medDupe"+idMedOffset).find("#inputMedStart").val(data);
+			});
+			socket.on('endDay', data => {
+				console.log(data);
+				$("#medDupe"+idMedOffset).find("#inputMedEnd").val(data);
+			});
+			socket.on('timesaday', data => {
+				console.log(data);
+				$("#medDupe"+idMedOffset).find("#inputMedFreq").val(data);
+			});
+			socket.on('quantity', data => {
+				console.log(data);
+				$("#medDupe"+idMedOffset).find("#inputMedQuantity").val(data);
+			});
+			//--------------------------
+		});
+	</script>
+  </head>
+
+  <body>
+
+    <div class="container">
+		<h2>Treatment as a Service</h2>
+		<form id="taasForm" class="taasForm" action="/incomingtdl" method="post">
+			<label><input id="medicationCheckBox" type="checkbox" name=mycheck value="medication" onclick="toggle_visibility('medForm');">Medication</label>
+			<label><input id ="restrictedFoodCheckBox" type="checkbox" name=mycheck value="restrictedFood" onclick="toggle_visibility('foodForm');">Restricted Food</label>
+			<label><input id="sideEffectsCheckBox" type="checkbox" name=mycheck value="symptom" onclick="toggle_visibility('sympForm');">Possible Side Effect</label>
+			<label><input id="sleepCheckBox" type="checkbox" name=mycheck value="sleep" onclick="toggle_visibility('sleepForm');">Recommended Sleep</label>
+			
+			<div id="duration" class="duration">
+				<label for="inputDuration" class="sr-only">Duration</label>
+				<input type="number" id="inputDuration" class="form-control" placeholder="Duration (Days)" required>
+			</div>
+			
+			<div id="medForm" class="medForm" style="display: none;">
+				<button id="addMed" class="btn btn-primary btn-block" onClick="return false;">Add Medication</button>
+				<div id="medDupe0">
+					<label for="inputMedication" class="sr-only">Medication</label>
+					<input type="text" id="inputMedication" class="form-control" placeholder="Medication" >
+					<label for="inputMedQuantity" class="sr-only">Quantity</label>
+					<input type="number" id="inputMedQuantity" class="form-control" placeholder="Quantity" >
+					<label for="inputMedProcedure" class="sr-only">Procedure</label>
+					<input type="text" id="inputMedProcedure" class="form-control" placeholder="Procedure" >
+					<label for="inputMedFreq" class="sr-only">Frequency</label>
+					<input type="number" id="inputMedFreq" class="form-control" min=0 placeholder="Frequency (Times/Day)" >
+					<label for="inputMedStart" class="sr-only">Quantity</label>
+					<input type="number" id="inputMedStart" class="form-control" min=0 placeholder="Start Day" >
+					<label for="inputMedEnd" class="sr-only">Quantity</label>
+					<input type="number" id="inputMedEnd" class="form-control" min=0 placeholder="End Day" >
+				</div>
+			</div>
+
+			<div id="foodForm" class="foodForm" style="display: none;">
+				<button id="addFood" class="btn btn-primary btn-block" onClick="return false;">Add Food</button>
+				<div id="foodDupe0">
+					<label for="inputFood" class="sr-only">Restricted Food</label>
+					<input type="text" id="inputFood" class="form-control" placeholder="Restricted Food" >
+					<label for="inputFoodStart" class="sr-only">Quantity</label>
+					<input type="number" id="inputFoodStart" class="form-control" min=0 placeholder="Start Day" >
+					<label for="inputFoodEnd" class="sr-only">Quantity</label>
+					<input type="number" id="inputFoodEnd" class="form-control" min=0 placeholder="End Day" >
+				</div>
+			</div>
+
+			<div id="sympForm" class="sympForm" style="display: none;">
+				<button id="addSymp" class="btn btn-primary btn-block" onClick="return false;">Add Side Effect</button>
+				<div id="sympDupe0">
+					<label for="inputSideEffect" class="sr-only">Possible Side Effect</label>
+					<input type="text" id="inputSideEffect" class="form-control" placeholder="Possible Side Effect" >
+					<label for="inputAlertStart" class="sr-only">Quantity</label>
+					<input type="number" id="inputAlertStart" class="form-control" min=0 placeholder="Alert After Day #:" >
+					<label for="inputAlertEnd" class="sr-only">Quantity</label>
+					<input type="number" id="inputAlertEnd" class="form-control" min=0 placeholder="Alert Before Day #:" >
+				</div>
+			</div>
+
+			<div id="sleepForm" class="sleepForm" style="display: none;">
+				<output id="outputMinSleep" style="center">Minimum Sleep (Hours): 6</output>
+				<label for="inputMinSleep" class="sr-only">Minimum Sleep (Hours)</label>
+				<input type="range" id="inputMinSleep" class="form-control" min=0 max=12 oninput="outputMinSleep.value = 'Minimum Sleep (Hours): '+inputMinSleep.value" >
+				<output id="outputMaxSleep" style="center">Maximum Sleep (Hours): 6</output>
+				<label for="inputMaxSleep" class="sr-only">Maximum Sleep (Hours)</label>
+				<input type="range" id="inputMaxSleep" class="form-control" min=0 max=12 oninput="outputMaxSleep.value = 'Maximum Sleep (Hours): '+inputMaxSleep.value" >
+			</div>
+
+			<div id="jsonForm" style="display: none;">
+				
+				<input type="text" id="jsonfield" class="form-control" >
+					<div id="foodforDupe0">
+					<label for="inputFood" class="sr-only">Restricted Food</label>
+					<input type="text" id="inputFood" class="form-control" placeholder="Restricted Food" >
+					<label for="inputFoodStart" class="sr-only">Quantity</label>
+					<input type="number" id="inputFoodStart" class="form-control" min=0 placeholder="Start Day" >
+					<label for="inputFoodEnd" class="sr-only">Quantity</label>
+					<input type="number" id="inputFoodEnd" class="form-control" min=0 placeholder="End Day" >
+				</div>
+				<div id="medforDupe0">
+					<label for="inputMedication" class="sr-only">Medication</label>
+					<input type="text" id="inputMedication" class="form-control" placeholder="Medication" >
+					<label for="inputMedQuantity" class="sr-only">Quantity</label>
+					<input type="number" id="inputMedQuantity" class="form-control" placeholder="Quantity" >
+					<label for="inputMedProcedure" class="sr-only">Procedure</label>
+					<input type="text" id="inputMedProcedure" class="form-control" placeholder="Procedure" >
+					<label for="inputMedFreq" class="sr-only">Frequency</label>
+					<input type="number" id="inputMedFreq" class="form-control" min=0 placeholder="Frequency (Times/Day)" >
+					<label for="inputMedStart" class="sr-only">Quantity</label>
+					<input type="number" id="inputMedStart" class="form-control" min=0 placeholder="Start Day" >
+					<label for="inputMedEnd" class="sr-only">Quantity</label>
+					<input type="number" id="inputMedEnd" class="form-control" min=0 placeholder="End Day" >
+				</div>
+				<div id="sympforDupe0">
+					<label for="inputSideEffect" class="sr-only">Possible Side Effect</label>
+					<input type="text" id="inputSideEffect" class="form-control" placeholder="Possible Side Effect" >
+					<label for="inputAlertStart" class="sr-only">Quantity</label>
+					<input type="number" id="inputAlertStart" class="form-control" min=0 placeholder="Alert After Day #:" >
+					<label for="inputAlertEnd" class="sr-only">Quantity</label>
+					<input type="number" id="inputAlertEnd" class="form-control" min=0 placeholder="Alert Before Day #:" >
+				</div>
+			</div>
+
+			<button id="submitButton" class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+		</form>
+
+    </div> <!-- /container -->
+    <div class="panel">
+			<button id="intro-switch" class="btn btn-block btn-primary" type="button" data-toggle="collapse" data-target="#debugLog" aria-expanded="false" aria-controls="debugLog" onclick="openpanel()">Show Reported Symtoms</button>
+			<div id="debugLog" class="collapse">
+				<div id="debugLogList" class="well"></div>
+			</div>
+		</div>
+  </body>
+</html>
