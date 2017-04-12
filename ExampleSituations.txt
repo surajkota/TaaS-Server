@@ -1,0 +1,111 @@
+Hypertension - routine visits to doctor to get this subscription renewed on app
+	
+	Duration
+		50 days
+	
+	Medication
+		Doxazosin Tablets, 1mg
+		1 tablet
+		Take by mouth with or without food
+		1/day
+		Day 1
+		Day 50
+	
+	Food Restriction
+		Alcohol
+		Day 1
+		Day 50
+		
+		Salt
+		Day 1
+		Day 50
+	
+	Side Effects
+		Dizziness
+		Day 1
+		Day 7
+		
+		Drowsiness
+		Day 1
+		Day 7
+		
+		Headache
+		Day 1
+		Day 7
+		
+		Light-headed feeling, might pass out
+		Day 1
+		Day 2
+
+		Severe stomach pain
+		Day 1
+		Day 2
+
+		Chest pain
+		Day 1
+		Day 2
+		
+		Trouble breathing
+		Day 1
+		Day 2
+
+		Erection that is painful or lasts 4 four hours
+		Day 1
+		Day 2
+
+
+
+Adult with Insomnia
+	
+	Duration
+		10 days
+	
+	Medication
+		Ramelteon Tablets, 8mg
+		1 Tablet
+		Swallow whole 30 minutes before going to sleep, do not chew or take with food
+		1/day
+		Day 1
+		Day 10
+
+	Side Effects
+		Diarrhea
+		Day 1
+		Day 7
+
+		Dizziness
+		Day 1
+		Day 7
+
+		Fatigue
+		Day 1
+		Day 7
+
+		Severe allergic reaction
+		Day 1
+		Day 2
+
+		Missed menstrual cycle
+		Day 1
+		Day 2
+
+		Hallucinations
+		Day 1
+		Day 2
+
+		Headache
+		Day 1
+		Day 2
+
+		Memory Problems
+		Day 1
+		Day 2
+
+		Worsening of sleeplessness
+		Day 1
+		Day 2
+
+	
+	Sleep
+		Minimum 7 Hours
+		Maximum 9 Hours
