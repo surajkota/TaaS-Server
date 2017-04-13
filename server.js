@@ -8,6 +8,7 @@
  */
 var express   = require('express');
 //var pug       = require('pug');
+var bodyParser = require('body-parser');
 var sockets   = require('socket.io');
 var path      = require('path');
 var mqtt1 	  = require('mqtt');
@@ -16,7 +17,7 @@ var bodyParser = require('body-parser');
 var conf      = require(path.join(__dirname, 'config'));
 var internals = require(path.join(__dirname, 'internals'));
 var mqttClient = mqtt1.connect('mqtt://broker.hivemq.com:1883');
-
+var Subscriptionid = 1234;
 var area = [0,0,0,0];
 
 var app = setupExpress();
@@ -86,14 +87,16 @@ function setupExpress() {
 	//app.set('view engine', 'pug'); // Set express to use pug for rendering HTML
 	
 	// Setup the 'public' folder to be statically accessable
+	
 	var viewsDir = path.join(__dirname, 'views');
 	var publicDir = path.join(__dirname, 'public');
 	var app = express();
 	app.use(express.static(publicDir));
+	//app.use(bodyParser());
 	
 	app.engine('html', require('ejs').renderFile);
 	app.set('view engine', 'html');
-	app.use(bodyParser.json());
+	app.use(bodyParser.urlencoded({ extended: true }));
 	// Setup the paths (Insert any other needed paths here)
 	// ------------------------------------------------------------------------
 	// Home page
@@ -117,15 +120,29 @@ function setupExpress() {
 	 }); 
 
 	 app.post('/medicineSkip', function(req, res) {
-		for (var propName in req.query) {
+		/*for (var propName in req.query) {
 	    	if (req.query.hasOwnProperty(propName)) {
 	    	    console.log(propName, req.query[propName]);
 		    }
-		}
+		}*/
+		io.sockets.emit('debug', req.body.toString());
 		res.send('200 OK');
 	 });
 
-	app.post('/incomingtdl', function(request, response){
+	app.post('/', function(request, response){
+    	console.log('req');
+    	console.log(request);
+    	console.log('req, json');
+    	console.log(request.body.jsonhello.toString());
+    	console.log('duration is:' + JSON.parse(request.body.jsonhello.toString()).duration);
+    	//console.log('req, body');
+    	//console.log(request.body);
+    	console.log('res ');
+    	//console.log(response);
+    	response.send('Subscription id is: '+ Subscriptionid);
+	});
+	
+	app.post('/sideEffect', function(request, response){
     	console.log(request.body);
     	console.log(response);
     	response.send('200 OK');
@@ -173,6 +190,9 @@ function setupExpress() {
 		process.kill(process.pid);
 	});
 
+	/*app.listen(8080, function() {
+  		console.log('Server running at 8080/');
+	});*/
 	return app;
 }
 
