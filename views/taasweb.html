@@ -68,7 +68,7 @@
 
 				if($("#medicationCheckBox").is(":checked")) {
 					var medArr = [];
-					for(var i=0; i<idFoodOffset; i++) {
+					for(var i=0; i<=idFoodOffset; i++) {
 						var med = {};
 						med.medicineName = $("#medDupe"+i).find("#inputMedication").val()? $("#medDupe"+i).find("#inputMedication").val() : "Crocin";
 						// var timeArr = [];
@@ -87,7 +87,7 @@
 
 				if($("#sideEffectsCheckBox").is(":checked")) {
 					var sideArr = [];
-					for(var i=0; i<idSympOffset; i++) {
+					for(var i=0; i<=idSympOffset; i++) {
 						var side = {};
 						side.symptom = $("#sympDupe"+i).find("#inputSideEffect").val() ? $("#sympDupe"+i).find("#inputSideEffect").val() : "Breathlessness";
 						var alertArr = [];
@@ -101,7 +101,7 @@
 
 				if($("#restrictedFoodCheckBox").is(":checked")) {
 					var foodArr = [];
-					for(var i=0; i<idFoodOffset; i++) {
+					for(var i=0; i<=idFoodOffset; i++) {
 						var food = {};
 						food.foodId = $("#foodDupe"+i).find("#inputFood").val() ? $("#foodDupe"+i).find("#inputFood").val() : "Soda";
 						food.startDay = $("#foodDupe"+i).find("#inputFoodStart").val() ? $("#foodDupe"+i).find("#inputFoodStart").val() : "1";
@@ -117,11 +117,10 @@
 					sleep.maxThreshold = $("#inputMaxSleep").val();
 					json.sleep = sleep;
 				}
-				json.treatmentId = subcriptionid.toString();
+				//json.treatmentId = subcriptionid.toString();
 				alert('json is:'+ JSON.stringify(json));
-				alert('Subcription id is: '+subcriptionid);
+				//alert('Subcription id is: '+subcriptionid);
 				$("#jsonfield").val(JSON.stringify(json));
-				$("#treatmentIdtxt").val(subcriptionid.toString());
 			});
 
 		});
@@ -165,6 +164,9 @@
 						$("#medicationCheckBox").prop('checked', true);
 						$("#medForm").css("display","block");
 					}
+				}else if(data == 'sleep'){
+					$("#sleepCheckBox").prop('checked', true);
+					$("#sleepForm").css("display","block");
 				}	
 			});
 			socket.on('startDay', data => {
@@ -182,6 +184,14 @@
 			socket.on('quantity', data => {
 				console.log(data);
 				$("#medDupe"+idMedOffset).find("#inputMedQuantity").val(data);
+			});
+			socket.on('minsleep', data => {
+				console.log(data);
+				$("#inputMinSleep").slider('value',data);
+			});
+			socket.on('maxsleep', data => {
+				console.log(data);
+				$("#inputMaxSleep").slider('value',data);
 			});
 			//--------------------------
 		});

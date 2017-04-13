@@ -19,6 +19,8 @@ var internals = require(path.join(__dirname, 'internals'));
 var mqttClient = mqtt1.connect('mqtt://broker.hivemq.com:1883');
 var Subscriptionid = 1234;
 var area = [0,0,0,0];
+var fs = require('fs');
+var io;
 
 var app = setupExpress();
 setupSocket();
@@ -26,16 +28,12 @@ setupSocket();
 function socket_handler(socket, mqtt) {
 	// Called when a client connects
 	mqtt.on('clientConnected', client => {
-		socket.emit('debug', {
-			type: 'CLIENT', msg: 'New client connected: ' + client.id
-		});
+		
 	});
 
 	// Called when a client disconnects
 	mqtt.on('clientDisconnected', client => {
-		socket.emit('debug', {
-			type: 'CLIENT', msg: 'Client "' + client.id + '" has disconnected'
-		});
+		
 	});
 
 	// Called when a client publishes data
@@ -43,41 +41,18 @@ function socket_handler(socket, mqtt) {
 	mqtt.on('published', (data, client) => {
 		if (!client) return;
 		//console.log('Message published!', data.topic);
-		socket.emit('debug', {
-			type: 'PUBLISH', 
-			msg: 'Client "' + client.id + '" published "' + JSON.stringify(data) + '"'
-		});
 	});
 
 
 	// Called when a client subscribes
 	mqtt.on('subscribed', (topic, client) => {
 		if (!client) return;
-
-		socket.emit('debug', {
-			type: 'SUBSCRIBE',
-			msg: 'Client "' + client.id + '" subscribed to "' + topic + '"'
-		});
-		if(topic=='thres')
-			mqttClient.publish('thres','10');
-		else if(topic=='count1')
-			mqttClient.publish('count1',area[0].toString());
-		else if(topic=='count2')
-			mqttClient.publish('count2',area[1].toString());
-		else if(topic=='count3')
-			mqttClient.publish('count3',area[2].toString());
-		else if(topic=='count4')
-			mqttClient.publish('count4',area[3].toString());
 	});
 
 	// Called when a client unsubscribes
 	mqtt.on('unsubscribed', (topic, client) => {
 		if (!client) return;
 
-		socket.emit('debug', {
-			type: 'SUBSCRIBE',
-			msg: 'Client "' + client.id + '" unsubscribed from "' + topic + '"'
-		});
 	});
 }
 // ----------------------------------------------------------------------------
@@ -104,20 +79,29 @@ function setupExpress() {
 		res.render('taasweb.html', { root: '.' });
 	});
 
+	app.get('/food1', (req, res) => {
+		res.send({ name: 'Pizza', ingredients: ['onions','capsicums'] });
+	});
+	app.get('/food2', (req, res) => {
+		res.send({ name: 'Lasagna', ingredients: ['cheese','peanuts'] });
+	});
+	app.get('/food3', (req, res) => {
+		res.send({ name: 'Veg Burger', ingredients: ['tomatoes','carrots'] });
+	});
+
 	app.post('/sleepIrregular', function(req,res) {
+		console.log("sleepIrregular "+JSON.stringify(req.body));
+		io.sockets.emit('debug', JSON.stringify(req.body));
 		res.send('200 OK');
 	});
 	app.post('/medicineIrregular', function(req, res) {
 		//console.log('received inc post request printing body');
 		//console.log(req.body.area);
-	  	if(!req.body.hasOwnProperty('area')){
-	    	res.statusCode = 400;
-	    	return res.send('Error 400: Post syntax incorrect.');
-	  	}
-	  	mqttClient.publish(req.body.area, '1');
+		console.log("medicineIrregular "+ JSON.stringify(req.body));
+	  	io.sockets.emit('debug', "Medicine intake at improper times!\n"+JSON.stringify(req.body));
 	  	res.send('200 OK');
 
-	 }); 
+	 });
 
 	 app.post('/medicineSkip', function(req, res) {
 		/*for (var propName in req.query) {
@@ -125,16 +109,35 @@ function setupExpress() {
 	    	    console.log(propName, req.query[propName]);
 		    }
 		}*/
-		io.sockets.emit('debug', req.body.toString());
+		console.log("medicineSkip "+JSON.stringify(req.body))
+		io.sockets.emit('debug', "Skipped medication\n"+JSON.stringify(req.body));
 		res.send('200 OK');
 	 });
+
+	app.post('/sideEffect', function(request, response){
+    	console.log("sideEffect"+JSON.stringify(request.body));
+    	io.sockets.emit('debug', "Side effect\n"+JSON.stringify(request.body))
+    	response.send('200 OK');
+	});
 
 	app.post('/', function(request, response){
     	console.log('req');
     	console.log(request);
     	console.log('req, json');
     	console.log(request.body.jsonhello.toString());
-    	console.log('duration is:' + JSON.parse(request.body.jsonhello.toString()).duration);
+    	var receivedjson = JSON.parse(request.body.jsonhello.toString());
+    	receivedjson.treatmentId = Subscriptionid;
+    	
+    	console.log('duration is:' + receivedjson.treatmentId);
+    	
+		fs.writeFile(Subscriptionid+'.json', JSON.stringify(receivedjson), function(err) {
+		    if(err) {
+		        return console.log(err);
+		    }
+
+		    console.log("The file was saved!");
+		});
+		Subscriptionid=Subscriptionid+1;
     	//console.log('req, body');
     	//console.log(request.body);
     	console.log('res ');
@@ -142,17 +145,19 @@ function setupExpress() {
     	response.send('Subscription id is: '+ Subscriptionid);
 	});
 	
-	app.post('/sideEffect', function(request, response){
-    	console.log(request.body);
-    	console.log(response);
-    	response.send('200 OK');
-	});
-
-	 app.get('/getTDL', function(req,res){
+	app.get('/getTDL', function(req,res){
 	 	console.log('Received TDL get request!');
-	 	var tdl = require('./TDL.json');
-	 	console.log('Sending '+tdl);
-	 	res.send(tdl);
+	 	var idrequired = req.query['id'];
+	 	//var tdl = require('./TDL.json');
+	 	var tdl;
+	 	fs.readFile('./'+idrequired+'.json', 'utf8', function (err,data) {
+		  if (err) {
+		    return console.log(err);
+		  }
+		  data;
+		  res.send(data);
+		  console.log(data);
+		});
 	 });
 
 	// Basic 404 Page
@@ -196,7 +201,6 @@ function setupExpress() {
 	return app;
 }
 
-var io;
 function setupSocket() {
 	var server = require('http').createServer(app);
 	io = sockets(server);
@@ -222,6 +226,8 @@ mqttClient.on('connect', function () {
  	mqttClient.subscribe('aspect');
  	mqttClient.subscribe('duration');
  	mqttClient.subscribe('quantity');
+ 	mqttClient.subscribe('minsleep');
+ 	mqttClient.subscribe('maxsleep');
 });
 
 mqttClient.on('message', function (topic, message) {
@@ -241,6 +247,10 @@ mqttClient.on('message', function (topic, message) {
  		io.sockets.emit('startDay', message.toString());
  	}else if(topic == 'endDay'){
  		io.sockets.emit('endDay', message.toString()); 		
+ 	}else if(topic == 'minsleep'){
+ 		io.sockets.emit('minsleep', message.toString());
+ 	}else if(topic == 'maxsleep'){
+ 		io.sockets.emit('maxsleep', message.toString());
  	}
 
 });
